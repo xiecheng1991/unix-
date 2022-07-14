@@ -1,0 +1,14 @@
+vim /usr/lib/systemd/system/etcd.service 创建一个service文件
+[Unit]
+Description=etcd 服务名称
+
+[Service]
+LimitNOFILE=100001
+PIDFile=/var/lib/etcd/etcd.pid
+ExecStart=etcd --config-file /var/lib/etcd/conf.yml 执行启动时的命令
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target 加入到user.target
