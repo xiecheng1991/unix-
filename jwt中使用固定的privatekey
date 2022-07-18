@@ -1,0 +1,41 @@
+要解决的问题 每次重启jwt都用新的rsa.PrivateKey
+
+出现原因封装的jwt_proxy中每次欺负时都采用rsa.GenerateKey()产生新的密钥导致未重启或者定时更新token的gs和gate验证失败
+
+解决方案通过预先生成一个密钥字符串
+pri := []byte(`-----BEGIN RSA Private Key-----
+    xxxxxxxxxxxxx
+ -----END RSA Private Key-----`)
+priBlock, _ := pem.Decode(priKey)
+privateKey, err := x509.ParsePKCS1PrivateKey(priBlock.Bytes)
+这样就可以得到一个固定的privateKey用于jwt生成token和验证
+ 
+ 生成pem格式文件 然后将文件内容 定义为上面的str字符串
+ package main
+
+import (
+        "crypto/rand"
+        "crypto/rsa"
+        "crypto/x509"
+        "encoding/pem"
+        "fmt"
+        "os"
+)
+
+func main() {
+        //fmt.Println("vim-go")
+        privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
+        if err != nil {
+                fmt.Println("create privateKey err")
+                return
+        }
+
+        X509PrivateKey := x509.MarshalPKCS1PrivateKey(privateKey)
+        privateBlock := pem.Block{Type: "RSA Private Key", Bytes: X509PrivateKey}
+        privateFile, err := os.Create("private.pem")
+        if err != nil {
+                panic(err)
+        }
+        defer privateFile.Close()
+        pem.Encode(privateFile, &privateBlock)
+}
