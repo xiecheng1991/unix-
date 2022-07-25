@@ -1,0 +1,4 @@
+socket套接字进行recv时发生reset by peer错误
+一般reset by peer错误产生的原因有两种
+1. 向一个不存在的主机发起链接
+2. 向一个正在关闭过程中的套接字发送数据 对方就会回复一个reset by peer 错误
